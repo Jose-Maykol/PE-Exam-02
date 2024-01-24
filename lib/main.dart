@@ -9,7 +9,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
@@ -31,52 +30,52 @@ class _MyHomePageState extends State<Calculator> {
   bool calculated = false;
 
   void onDigitPress(String digit) {
-    setState(() {
-      if (operation == '' || calculated) {
-        operation = digit;
-        calculated = false;
-      } else {
-        operation += digit;
-      }
-    });
-  }
+  setState(() {
+    if (calculated && digit != '=') {
+      calculated = false;
+      operation = digit;
+    } else if (calculated && digit == '=') {
+      // ---
+    } else {
+      operation += digit;
+    }
+  });
+}
 
-  void calculate() {
-    RegExp regex = RegExp(r'(\d+)\s*([+\-x÷])\s*(\d+)');
-    Match? match = regex.firstMatch(operation);
-    if (match != null) {
+void calculate() {
+  RegExp regex = RegExp(r'(\d+)\s*([+\-x÷])\s*(\d+)');
+  Match? match = regex.firstMatch(operation);
+  if (match != null) {
     String first = match.group(1) as String;
     String operator = match.group(2) as String;
     String second = match.group(3) as String;
-      switch (operator) {
-        case '+':
-          setState(() {
-            operation += (double.parse(first) + double.parse(second)).toString();
-          });
-          break;
-        case '-':
-          setState(() {
-            operation += (double.parse(first) - double.parse(second)).toString();
-          });
-          break;
-        case 'x':
-          setState(() {
-            operation += (double.parse(first) * double.parse(second)).toString();
-          });
-          break;
-        case '÷':
-          setState(() {
-            operation += (double.parse(first) / double.parse(second)).toString();
-          });
-          break;
-      }
-      calculated = true;
-    } else {
-      setState(() {
-        operation = '';
-      });
+    String result = '';
+    switch (operator) {
+      case '+':
+        result = (double.parse(first) + double.parse(second)).toString();
+        break;
+      case '-':
+        result = (double.parse(first) - double.parse(second)).toString();
+        break;
+      case 'x':
+        result = (double.parse(first) * double.parse(second)).toString();
+        break;
+      case '÷':
+        result = (double.parse(first) / double.parse(second)).toString();
+        break;
     }
+    
+    setState(() {
+      operation = result.endsWith('.0') ? result.substring(0, result.length - 2) : result;
+      calculated = true;
+    });
+  } else {
+    setState(() {
+      operation = '';
+      calculated = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +121,11 @@ class _MyHomePageState extends State<Calculator> {
                         final buttonInfo = calculatorNumbersButtons[index];
                         return CalculatorButton(
                           onPressed: () {
-                            onDigitPress(buttonInfo.text);
+                            if (buttonInfo.text == '+/-') {
+                              onDigitPress('-');
+                            } else {
+                              onDigitPress(buttonInfo.text);
+                            }
                           },
                           text: buttonInfo.text,
                           color: buttonInfo.color,
